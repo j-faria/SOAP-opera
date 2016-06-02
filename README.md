@@ -18,12 +18,11 @@ I'm guessing it will be slow... But let's try it!
 
 ## What is needed
 
-- [ ] Mercury
-- [x] Venus
-- [x] Earth (Orbit/Moon)
-- [x] Mars
-- [ ] Jupiter
-- [ ] Saturn
-- [ ] Uranus
-- [ ] Neptune
-- [ ] Comet Haley
+- [ ] Create basic `DNest4` or `RJObject` template
+- [ ] Sample active region parameters
+- [ ] Implement a call to SOAP
+- [ ] Find descriptive statistics
+- [ ] Create simulated data for tests
+- [ ] Implement ABC "likelihood"
+- [ ] Extend `RJObject` to allow for two classes of objects, active regions and planets
+- [ ] Sample........
