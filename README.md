@@ -18,6 +18,12 @@ I'm guessing it will be slow... But let's try it!
 
 ## What is needed
 
-    * [ ] foo
-    * [x] bar
-    * [ ] baz
+- [ ] Mercury
+- [x] Venus
+- [x] Earth (Orbit/Moon)
+- [x] Mars
+- [ ] Jupiter
+- [ ] Saturn
+- [ ] Uranus
+- [ ] Neptune
+- [ ] Comet Haley
