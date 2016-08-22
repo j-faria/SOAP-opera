@@ -33,3 +33,9 @@ I'm guessing it will be slow... But let's try it!
 - [ ] Create simulated data for tests
 - [ ] Extend `RJObject` to allow for two classes of objects, active regions and planets
 - [ ] Sample........
+
+
+## Other similar works
+
+ - [A combined spectroscopic and photometric stellar activity study of Epsilon Eridani](http://arxiv.org/abs/1606.08553v1)
+ - ...
