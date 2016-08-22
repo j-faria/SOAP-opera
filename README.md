@@ -21,7 +21,7 @@ I'm guessing it will be slow... But let's try it!
 
 ## What is needed
 
-- [ ] Create basic `DNest4` or `RJObject` template
+- [x] Create basic `DNest4` or `RJObject` template
 - [ ] Create and set priors for active region parameters
 - [ ] Implement a call to SOAP
 - [ ] *enhancement:* could also call the `macula` code to create photometry
