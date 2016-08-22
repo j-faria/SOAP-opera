@@ -23,6 +23,8 @@ I'm guessing it will be slow... But let's try it!
 
 - [x] Create basic `DNest4` or `RJObject` template
 - [ ] Create and set priors for active region parameters
+  - which AR parameters should we let free? (lat, long, size) ?
+  - which stellar parameters should we let free?
 - [ ] Implement a call to SOAP
 - [ ] *enhancement:* could also call the `macula` code to create photometry
 - [ ] Implement ABC "likelihood"
