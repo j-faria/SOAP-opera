@@ -1,5 +1,5 @@
-#include "RVmodel.h"
-#include "RVConditionalPrior.h"
+#include "SOAPmodel.h"
+#include "SOAPConditionalPrior.h"
 #include "DNest4.h"
 #include "RNG.h"
 #include "Utils.h"
@@ -25,7 +25,7 @@ extern ContinuousDistribution *eta3_prior;
 extern ContinuousDistribution *log_eta4_prior;
 
 
-void RVmodel::from_prior(RNG& rng)
+void SOAPmodel::from_prior(RNG& rng)
 {
     objects.from_prior(rng);
     objects.consolidate_diff();
@@ -65,7 +65,7 @@ void RVmodel::from_prior(RNG& rng)
 
 }
 
-void RVmodel::calculate_C()
+void SOAPmodel::calculate_C()
 {
 
     // Get the data
@@ -146,7 +146,7 @@ void RVmodel::calculate_C()
     #endif
 }
 
-void RVmodel::calculate_mu()
+void SOAPmodel::calculate_mu()
 {
     // Get the times from the data
     const vector<double>& t = Data::get_instance().get_t();
@@ -218,7 +218,7 @@ void RVmodel::calculate_mu()
 
 }
 
-double RVmodel::perturb(RNG& rng)
+double SOAPmodel::perturb(RNG& rng)
 {
     const vector<double>& t = Data::get_instance().get_t();
     double logH = 0.;
@@ -327,7 +327,7 @@ double RVmodel::perturb(RNG& rng)
 }
 
 
-double RVmodel::log_likelihood() const
+double SOAPmodel::log_likelihood() const
 {
     int N = Data::get_instance().get_y().size();
     double logL = 0.;
@@ -418,7 +418,7 @@ double RVmodel::log_likelihood() const
     return logL;
 }
 
-void RVmodel::print(std::ostream& out) const
+void SOAPmodel::print(std::ostream& out) const
 {
     // output precision
     out.setf(ios::fixed,ios::floatfield);
@@ -444,7 +444,7 @@ void RVmodel::print(std::ostream& out) const
     out<<background<<' ';
 }
 
-string RVmodel::description() const
+string SOAPmodel::description() const
 {
     if(GP)
         return string("extra_sigma   eta1   eta2   eta3   eta4  objects.print   staleness   background");
@@ -463,7 +463,7 @@ string RVmodel::description() const
     @param t_peri time of periastron passage
     @return eccentric anomaly.
 */
-double RVmodel::ecc_anomaly(double t, double period, double ecc, double time_peri)
+double SOAPmodel::ecc_anomaly(double t, double period, double ecc, double time_peri)
 {
     double tol;
     if (ecc < 0.8) tol = 1e-14;
@@ -497,7 +497,7 @@ double RVmodel::ecc_anomaly(double t, double period, double ecc, double time_per
     @param M mean anomaly (in radians)
     @return starting value for the eccentric anomaly.
 */
-double RVmodel::keplerstart3(double e, double M)
+double SOAPmodel::keplerstart3(double e, double M)
 {
     double t34 = e*e;
     double t35 = e*t34;
@@ -515,7 +515,7 @@ double RVmodel::keplerstart3(double e, double M)
     @param x starting value for the eccentric anomaly
     @return corrected value for the eccentric anomaly
 */
-double RVmodel::eps3(double e, double M, double x)
+double SOAPmodel::eps3(double e, double M, double x)
 {
     double t1 = cos(x);
     double t2 = -1 + e*t1;
@@ -539,7 +539,7 @@ double RVmodel::eps3(double e, double M, double x)
     @param t_peri time of periastron passage
     @return true anomaly.
 */
-double RVmodel::true_anomaly(double t, double period, double ecc, double t_peri)
+double SOAPmodel::true_anomaly(double t, double period, double ecc, double t_peri)
 {
     double E = ecc_anomaly(t, period, ecc, t_peri);
     double f = acos( (cos(E)-ecc)/( 1-ecc*cos(E) ) );

@@ -13,8 +13,8 @@ LIBS = -ldnest4 -L/usr/local/lib
 SRCDIR = ./src
 SRCS =\
 $(SRCDIR)/Data.cpp \
-$(SRCDIR)/RVConditionalPrior.cpp \
-$(SRCDIR)/RVmodel.cpp \
+$(SRCDIR)/SOAPConditionalPrior.cpp \
+$(SRCDIR)/SOAPmodel.cpp \
 $(SRCDIR)/main.cpp
 
 OBJS=$(subst .cpp,.o,$(SRCS))

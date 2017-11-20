@@ -1,4 +1,4 @@
-#include "RVConditionalPrior.h"
+#include "SOAPConditionalPrior.h"
 #include "DNest4.h"
 #include "Utils.h"
 #include <cmath>
@@ -53,14 +53,14 @@ else
     //TruncatedNormal eprior(0, 0.3, 0., 1.);
 
 
-RVConditionalPrior::RVConditionalPrior()
+SOAPConditionalPrior::SOAPConditionalPrior()
 {
 }
 
 
-void RVConditionalPrior::from_prior(RNG& rng)
+void SOAPConditionalPrior::from_prior(RNG& rng)
 {
-    //cout << "called RVConditionalPrior::from_prior !!!" << endl;
+    //cout << "called SOAPConditionalPrior::from_prior !!!" << endl;
     if(hyperpriors)
     {
         center = log_muP_prior->rvs(rng);
@@ -69,7 +69,7 @@ void RVConditionalPrior::from_prior(RNG& rng)
     }
 }
 
-double RVConditionalPrior::perturb_hyperparameters(RNG& rng)
+double SOAPConditionalPrior::perturb_hyperparameters(RNG& rng)
 {
     double logH = 0.;
 
@@ -106,10 +106,10 @@ double RVConditionalPrior::perturb_hyperparameters(RNG& rng)
 // vec[3] = ecc
 // vec[4] = viewing angle
 
-double RVConditionalPrior::log_pdf(const std::vector<double>& vec) const
+double SOAPConditionalPrior::log_pdf(const std::vector<double>& vec) const
 {
     //cout << "type of Pprior:" << typeid(Pprior).name() << endl;
-    //cout << "called RVConditionalPrior::log_pdf !!!" << endl;
+    //cout << "called SOAPConditionalPrior::log_pdf !!!" << endl;
     if(hyperpriors)
     {
         if(vec[2] < 0. || vec[2] > 2.*M_PI ||
@@ -137,7 +137,7 @@ double RVConditionalPrior::log_pdf(const std::vector<double>& vec) const
            wprior->log_pdf(vec[4]);
 }
 
-void RVConditionalPrior::from_uniform(std::vector<double>& vec, int id) const
+void SOAPConditionalPrior::from_uniform(std::vector<double>& vec, int id) const
 {
     if(hyperpriors)
     {
@@ -151,7 +151,7 @@ void RVConditionalPrior::from_uniform(std::vector<double>& vec, int id) const
     vec[4] = wprior->cdf_inverse(vec[4]); //2.*M_PI*vec[4];
 }
 
-void RVConditionalPrior::to_uniform(std::vector<double>& vec, int id) const
+void SOAPConditionalPrior::to_uniform(std::vector<double>& vec, int id) const
 {
     if(hyperpriors)
     {
@@ -165,14 +165,14 @@ void RVConditionalPrior::to_uniform(std::vector<double>& vec, int id) const
     vec[4] = wprior->cdf(vec[4]); //vec[4]/(2.*M_PI);
 }
 
-void RVConditionalPrior::print(std::ostream& out) const
+void SOAPConditionalPrior::print(std::ostream& out) const
 {
     if(hyperpriors)
         out<<center<<' '<<width<<' '<<muK<<' ';
 }
 
 
-void RVConditionalPrior::print0(std::ostream& out) const
+void SOAPConditionalPrior::print0(std::ostream& out) const
 {
     out<<0.<<' '<<0.<<' '<<0.<<' ';
 }
