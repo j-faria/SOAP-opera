@@ -1,8 +1,8 @@
-#ifndef DNest4_RVmodel
-#define DNest4_RVmodel
+#ifndef DNest4_SOAPmodel
+#define DNest4_SOAPmodel
 
 #include <vector>
-#include "RVConditionalPrior.h"
+#include "SOAPConditionalPrior.h"
 #include "RJObject/RJObject.h"
 #include "RNG.h"
 #include "Data.h"
@@ -20,10 +20,10 @@ extern const bool obs_after_HARPS_fibers;
 extern const bool trend;
 
 
-class RVmodel
+class SOAPmodel
 {
     private:
-        DNest4::RJObject<RVConditionalPrior> objects;
+        DNest4::RJObject<SOAPConditionalPrior> objects;
 
         double background;
         //std::vector<double> offsets;
@@ -64,7 +64,7 @@ class RVmodel
         unsigned int staleness;
 
     public:
-        RVmodel();
+        SOAPmodel();
 
         void setupHODLR();
 

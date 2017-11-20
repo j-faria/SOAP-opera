@@ -2,8 +2,8 @@
 #include <typeinfo>
 #include "DNest4.h"
 #include "Data.h"
-#include "RVmodel.h"
-#include "RVConditionalPrior.h"
+#include "SOAPmodel.h"
+#include "SOAPConditionalPrior.h"
 
 using namespace std;
 using namespace DNest4;
@@ -15,8 +15,8 @@ const bool GP = false;
 const bool hyperpriors = false;
 const bool trend = false;
 
-RVmodel::RVmodel()
-:objects(5, 1, true, RVConditionalPrior())
+SOAPmodel::SOAPmodel()
+:objects(5, 1, true, SOAPConditionalPrior())
 ,mu(Data::get_instance().get_t().size())
 ,C(Data::get_instance().get_t().size(), Data::get_instance().get_t().size())
 {
@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 {
 	Data::get_instance().load("examples/BL2009/BL2009_dataset1.kms.rv", "kms", 0);
 
-	Sampler<RVmodel> sampler = setup<RVmodel>(argc, argv);
+	Sampler<SOAPmodel> sampler = setup<SOAPmodel>(argc, argv);
 	sampler.run();
 
 	return 0;

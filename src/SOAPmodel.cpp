@@ -72,78 +72,28 @@ void SOAPmodel::calculate_C()
     const vector<double>& t = Data::get_instance().get_t();
     const vector<double>& sig = Data::get_instance().get_sig();
 
-    #if DOCEL
-        // celerite!
-        // auto begin1 = std::chrono::high_resolution_clock::now();  // start timing
 
-        /*
-        This implements the kernel in Eq (61) of Foreman-Mackey et al. (2017)
-        The kernel has parameters a, b, c and P
-        corresponding to an amplitude, factor, decay timescale and period.
-        */
+    int N = Data::get_instance().get_t().size();
+    // auto begin = std::chrono::high_resolution_clock::now();  // start timing
 
-        VectorXd alpha_real(1),
-                 beta_real(1),
-                 alpha_complex_real(1),
-                 alpha_complex_imag(1),
-                 beta_complex_real(1),
-                 beta_complex_imag(1);
-        
-        //a = eta1;
-        //b = eta4;
-        //P = eta3;
-        //c = eta2;
-
-        alpha_real << eta1*(1.+eta4)/(2.+eta4);
-        beta_real << 1./eta2;
-        alpha_complex_real << eta1/(2.+eta4);
-        alpha_complex_imag << 0.;
-        beta_complex_real << 1./eta2;
-        beta_complex_imag << 2.*M_PI / eta3;
-
-
-        VectorXd yvar(t.size()), tt(t.size());
-        for (int i = 0; i < t.size(); ++i){
-            yvar(i) = sig[i] * sig[i] + extra_sigma * extra_sigma;
-            tt(i) = t[i];
-        }
-
-        solver.compute(
-            extra_sigma,
-            alpha_real, beta_real,
-            alpha_complex_real, alpha_complex_imag,
-            beta_complex_real, beta_complex_imag,
-            tt, yvar  // Note: this is the measurement _variance_
-        );
-
-
-        // auto end1 = std::chrono::high_resolution_clock::now();
-        // cout << "new GP: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end1-begin1).count() << " ns" << std::endl;
-        
-    #else
-
-        int N = Data::get_instance().get_t().size();
-        // auto begin = std::chrono::high_resolution_clock::now();  // start timing
-
-        for(size_t i=0; i<N; i++)
+    for(size_t i=0; i<N; i++)
+    {
+        for(size_t j=i; j<N; j++)
         {
-            for(size_t j=i; j<N; j++)
-            {
-                //C(i, j) = eta1*eta1*exp(-0.5*pow((t[i] - t[j])/eta2, 2) );
-                C(i, j) = eta1*eta1*exp(-0.5*pow((t[i] - t[j])/eta2, 2) 
-                           -2.0*pow(sin(M_PI*(t[i] - t[j])/eta3)/eta4, 2) );
+            //C(i, j) = eta1*eta1*exp(-0.5*pow((t[i] - t[j])/eta2, 2) );
+            C(i, j) = eta1*eta1*exp(-0.5*pow((t[i] - t[j])/eta2, 2) 
+                       -2.0*pow(sin(M_PI*(t[i] - t[j])/eta3)/eta4, 2) );
 
-                if(i==j)
-                    C(i, j) += sig[i]*sig[i] + extra_sigma*extra_sigma; //+ eta5*t[i]*t[i];
-                else
-                    C(j, i) = C(i, j);
-            }
+            if(i==j)
+                C(i, j) += sig[i]*sig[i] + extra_sigma*extra_sigma; //+ eta5*t[i]*t[i];
+            else
+                C(j, i) = C(i, j);
         }
+    }
 
-        // auto end = std::chrono::high_resolution_clock::now();
-        // cout << "old GP: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns" << "\t"; // << std::endl;
+    // auto end = std::chrono::high_resolution_clock::now();
+    // cout << "old GP: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns" << "\t"; // << std::endl;
 
-    #endif
 }
 
 void SOAPmodel::calculate_mu()
@@ -347,30 +297,25 @@ double SOAPmodel::log_likelihood() const
         for(size_t i=0; i<y.size(); i++)
             residual(i) = y[i] - mu[i];
 
-        #if DOCEL
-            logL = -0.5 * (solver.dot_solve(residual) +
-                           solver.log_determinant() +
-                           y.size()*log(2*M_PI)); 
-        #else
-            // perform the cholesky decomposition of C
-            Eigen::LLT<Eigen::MatrixXd> cholesky = C.llt();
-            // get the lower triangular matrix L
-            MatrixXd L = cholesky.matrixL();
 
-            double logDeterminant = 0.;
-            for(size_t i=0; i<y.size(); i++)
-                logDeterminant += 2.*log(L(i,i));
+        // perform the cholesky decomposition of C
+        Eigen::LLT<Eigen::MatrixXd> cholesky = C.llt();
+        // get the lower triangular matrix L
+        MatrixXd L = cholesky.matrixL();
 
-            VectorXd solution = cholesky.solve(residual);
+        double logDeterminant = 0.;
+        for(size_t i=0; i<y.size(); i++)
+            logDeterminant += 2.*log(L(i,i));
 
-            // y*solution
-            double exponent = 0.;
-            for(size_t i=0; i<y.size(); i++)
-                exponent += residual(i)*solution(i);
+        VectorXd solution = cholesky.solve(residual);
 
-            logL = -0.5*y.size()*log(2*M_PI)
-                   - 0.5*logDeterminant - 0.5*exponent;
-        #endif
+        // y*solution
+        double exponent = 0.;
+        for(size_t i=0; i<y.size(); i++)
+            exponent += residual(i)*solution(i);
+
+        logL = -0.5*y.size()*log(2*M_PI)
+               - 0.5*logDeterminant - 0.5*exponent;
 
         // calculate C^-1*(y-mu)
         // auto begin = std::chrono::high_resolution_clock::now();  // start timing

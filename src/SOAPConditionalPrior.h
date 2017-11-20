@@ -1,5 +1,5 @@
-#ifndef DNest4_RVConditionalPrior
-#define DNest4_RVConditionalPrior
+#ifndef DNest4_SOAPConditionalPrior
+#define DNest4_SOAPConditionalPrior
 
 #include "RNG.h"
 #include "RJObject/ConditionalPriors/ConditionalPrior.h"
@@ -8,7 +8,7 @@
 // for the orbital period and semi-amplitude
 extern const bool hyperpriors;
 
-class RVConditionalPrior:public DNest4::ConditionalPrior
+class SOAPConditionalPrior:public DNest4::ConditionalPrior
 {
 	private:
 		// Parameters of bi-exponential hyper-distribution for log-periods
@@ -20,7 +20,7 @@ class RVConditionalPrior:public DNest4::ConditionalPrior
 		double perturb_hyperparameters(DNest4::RNG& rng);
 
 	public:
-		RVConditionalPrior();
+		SOAPConditionalPrior();
 
 		void from_prior(DNest4::RNG& rng);
 
