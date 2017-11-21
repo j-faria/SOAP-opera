@@ -2,8 +2,8 @@
 #include <typeinfo>
 #include "DNest4.h"
 #include "Data.h"
-#include "SOAPmodel.h"
-#include "SOAPConditionalPrior.h"
+#include "Model.h"
+#include "ConditionalPrior.h"
 
 using namespace std;
 using namespace DNest4;
@@ -15,10 +15,14 @@ const bool GP = false;
 const bool hyperpriors = false;
 const bool trend = false;
 
-SOAPmodel::SOAPmodel()
-:objects(5, 1, true, SOAPConditionalPrior())
+
+Model::Model()
+:planets(5, 1, true, PlanetConditionalPrior())
+,active_regions(5, 1, true, SOAPConditionalPrior())
 ,mu(Data::get_instance().get_t().size())
 ,C(Data::get_instance().get_t().size(), Data::get_instance().get_t().size())
+,star()
+,ccf(),ccf_active_region()
 {
     double ymin = Data::get_instance().get_y_min();
     double ymax = Data::get_instance().get_y_max();
@@ -27,14 +31,19 @@ SOAPmodel::SOAPmodel()
     Cprior = new Uniform(ymin, ymax);
     if(trend)
     	slope_prior = new Uniform(-topslope, topslope);
+
+    star.vrot = 10.;
+    std::cout << star.vrot << endl;
+
 }
 
 int main(int argc, char** argv)
 {
-	Data::get_instance().load("examples/BL2009/BL2009_dataset1.kms.rv", "kms", 0);
+	Data::get_instance().load("BL2009_dataset1.kms.rv", "kms", 0);
 
-	Sampler<SOAPmodel> sampler = setup<SOAPmodel>(argc, argv);
-	sampler.run();
+	Sampler<Model> sampler = setup<Model>(argc, argv);
+	// sampler.run();
+
 
 	return 0;
 }

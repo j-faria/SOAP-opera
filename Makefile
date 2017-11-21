@@ -7,23 +7,30 @@ includes = -I$(DNEST4_PATH) -I$(EIGEN_PATH)
 
 CXX = g++
 CXXFLAGS = -pthread -std=c++11 -O3 -DNDEBUG -w -DEIGEN_MPL2_ONLY
-LIBS = -ldnest4 -L/usr/local/lib
+LIBS = -ldnest4 -L/usr/local/lib -lgsl -lgslcblas
 
 
 SRCDIR = ./src
 SRCS =\
 $(SRCDIR)/Data.cpp \
-$(SRCDIR)/SOAPConditionalPrior.cpp \
-$(SRCDIR)/SOAPmodel.cpp \
+$(SRCDIR)/ConditionalPrior.cpp \
+$(SRCDIR)/Model.cpp \
+$(SRCDIR)/starspot.c \
 $(SRCDIR)/main.cpp
 
-OBJS=$(subst .cpp,.o,$(SRCS))
-HEADERS=$(subst .cpp,.h,$(SRCS))
+OBJS1=$(subst .cpp,.o,$(SRCS))
+OBJS=$(subst .c,.o,$(OBJS1))
+
+HEADERS1=$(subst .cpp,.h,$(SRCS))
+HEADERS=$(subst .c,.h,$(HEADERS1))
 
 all: main
 
 %.o: %.cpp
 	$(CXX) -c $(includes) -o $@ $< $(CXXFLAGS)
+
+%.o: %.c
+	$(CC) -c $(includes) -o $@ $< $(CXXFLAGS)
 
 
 main: $(DNEST4_PATH)/libdnest4.a $(OBJS)

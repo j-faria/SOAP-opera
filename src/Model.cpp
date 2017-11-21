@@ -1,5 +1,5 @@
-#include "SOAPmodel.h"
-#include "SOAPConditionalPrior.h"
+#include "Model.h"
+#include "ConditionalPrior.h"
 #include "DNest4.h"
 #include "RNG.h"
 #include "Utils.h"
@@ -25,10 +25,10 @@ extern ContinuousDistribution *eta3_prior;
 extern ContinuousDistribution *log_eta4_prior;
 
 
-void SOAPmodel::from_prior(RNG& rng)
+void Model::from_prior(RNG& rng)
 {
-    objects.from_prior(rng);
-    objects.consolidate_diff();
+    planets.from_prior(rng);
+    planets.consolidate_diff();
     
     background = Cprior->rvs(rng);
     extra_sigma = Jprior->rvs(rng);
@@ -65,7 +65,7 @@ void SOAPmodel::from_prior(RNG& rng)
 
 }
 
-void SOAPmodel::calculate_C()
+void Model::calculate_C()
 {
 
     // Get the data
@@ -96,18 +96,18 @@ void SOAPmodel::calculate_C()
 
 }
 
-void SOAPmodel::calculate_mu()
+void Model::calculate_mu()
 {
     // Get the times from the data
     const vector<double>& t = Data::get_instance().get_t();
 
     // Update or from scratch?
-    bool update = (objects.get_added().size() < objects.get_components().size()) &&
+    bool update = (planets.get_added().size() < planets.get_components().size()) &&
             (staleness <= 10);
 
     // Get the components
-    const vector< vector<double> >& components = (update)?(objects.get_added()):
-                (objects.get_components());
+    const vector< vector<double> >& components = (update)?(planets.get_added()):
+                (planets.get_components());
     // at this point, components has:
     //  if updating: only the added planets' parameters
     //  if from scratch: all the planets' parameters
@@ -168,7 +168,7 @@ void SOAPmodel::calculate_mu()
 
 }
 
-double SOAPmodel::perturb(RNG& rng)
+double Model::perturb(RNG& rng)
 {
     const vector<double>& t = Data::get_instance().get_t();
     double logH = 0.;
@@ -176,8 +176,8 @@ double SOAPmodel::perturb(RNG& rng)
 
     if(rng.rand() <= 0.5)
     {
-        logH += objects.perturb(rng);
-        objects.consolidate_diff();
+        logH += planets.perturb(rng);
+        planets.consolidate_diff();
         calculate_mu();
     }
 
@@ -277,7 +277,7 @@ double SOAPmodel::perturb(RNG& rng)
 }
 
 
-double SOAPmodel::log_likelihood() const
+double Model::log_likelihood() const
 {
     int N = Data::get_instance().get_y().size();
     double logL = 0.;
@@ -363,7 +363,7 @@ double SOAPmodel::log_likelihood() const
     return logL;
 }
 
-void SOAPmodel::print(std::ostream& out) const
+void Model::print(std::ostream& out) const
 {
     // output precision
     out.setf(ios::fixed,ios::floatfield);
@@ -380,21 +380,21 @@ void SOAPmodel::print(std::ostream& out) const
     if(GP)
         out<<eta1<<'\t'<<eta2<<'\t'<<eta3<<'\t'<<eta4<<'\t';
   
-    if (objects.get_fixed() and objects.get_components().size()==0)
-        objects.print0(out);
+    if (planets.get_fixed() and planets.get_components().size()==0)
+        planets.print0(out);
     else
-        objects.print(out);
+        planets.print(out);
 
     out<<' '<<staleness<<' ';
     out<<background<<' ';
 }
 
-string SOAPmodel::description() const
+string Model::description() const
 {
     if(GP)
-        return string("extra_sigma   eta1   eta2   eta3   eta4  objects.print   staleness   background");
+        return string("extra_sigma   eta1   eta2   eta3   eta4  planets.print   staleness   background");
     else
-        return string("extra_sigma   objects.print   staleness   background");
+        return string("extra_sigma   planets.print   staleness   background");
 }
 
 
@@ -408,7 +408,7 @@ string SOAPmodel::description() const
     @param t_peri time of periastron passage
     @return eccentric anomaly.
 */
-double SOAPmodel::ecc_anomaly(double t, double period, double ecc, double time_peri)
+double Model::ecc_anomaly(double t, double period, double ecc, double time_peri)
 {
     double tol;
     if (ecc < 0.8) tol = 1e-14;
@@ -442,7 +442,7 @@ double SOAPmodel::ecc_anomaly(double t, double period, double ecc, double time_p
     @param M mean anomaly (in radians)
     @return starting value for the eccentric anomaly.
 */
-double SOAPmodel::keplerstart3(double e, double M)
+double Model::keplerstart3(double e, double M)
 {
     double t34 = e*e;
     double t35 = e*t34;
@@ -460,7 +460,7 @@ double SOAPmodel::keplerstart3(double e, double M)
     @param x starting value for the eccentric anomaly
     @return corrected value for the eccentric anomaly
 */
-double SOAPmodel::eps3(double e, double M, double x)
+double Model::eps3(double e, double M, double x)
 {
     double t1 = cos(x);
     double t2 = -1 + e*t1;
@@ -484,7 +484,7 @@ double SOAPmodel::eps3(double e, double M, double x)
     @param t_peri time of periastron passage
     @return true anomaly.
 */
-double SOAPmodel::true_anomaly(double t, double period, double ecc, double t_peri)
+double Model::true_anomaly(double t, double period, double ecc, double t_peri)
 {
     double E = ecc_anomaly(t, period, ecc, t_peri);
     double f = acos( (cos(E)-ecc)/( 1-ecc*cos(E) ) );

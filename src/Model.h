@@ -1,8 +1,8 @@
-#ifndef DNest4_SOAPmodel
-#define DNest4_SOAPmodel
+#ifndef DNest4_Model
+#define DNest4_Model
 
 #include <vector>
-#include "SOAPConditionalPrior.h"
+#include "ConditionalPrior.h"
 #include "RJObject/RJObject.h"
 #include "RNG.h"
 #include "Data.h"
@@ -19,11 +19,38 @@ extern const bool obs_after_HARPS_fibers;
 // whether the model includes a linear trend
 extern const bool trend;
 
+#define RADSUN 696000;
+#define lightC 299792458.  // speed of light in m/s
 
-class SOAPmodel
+class Star
+{
+    public:
+        double prot, vrot, incl, limba1, limba2, psi, \
+               rad, Temp, Temp_diff_spot;
+};
+
+class CCF
+{
+    public:
+        std::vector<double> rv, intensity;
+        double width, step, v_interval;
+        int n, n_v;
+};
+
+// class ActiveRegion
+// {
+//     public:
+//         double longi, lati, size;
+//         int active_region_type; // 0 spot, 1 plage
+//         int check; // 0 false, 1 true
+// };
+
+
+class Model
 {
     private:
-        DNest4::RJObject<SOAPConditionalPrior> objects;
+        DNest4::RJObject<PlanetConditionalPrior> planets;
+        DNest4::RJObject<SOAPConditionalPrior> active_regions;
 
         double background;
         //std::vector<double> offsets;
@@ -48,6 +75,9 @@ class SOAPmodel
         std::vector<long double> mu;
         void calculate_mu();
 
+
+
+
         // eccentric and true anomalies
         double ecc_anomaly(double time, double prd, double ecc, double peri_pass);
         double eps3(double e, double M, double x);
@@ -64,9 +94,19 @@ class SOAPmodel
         unsigned int staleness;
 
     public:
-        SOAPmodel();
+        Model();
 
         void setupHODLR();
+
+        // The star, ccf and active regions
+        Star star;
+        CCF ccf, ccf_active_region;
+
+        // struct star
+        // {
+        //   double prot, vrot, incl, limba1, limba2, psi, \
+        //          rad_sun, rad, Temp, Temp_diff_spot;
+        // };
 
         // Generate the point from the prior
         void from_prior(DNest4::RNG& rng);
