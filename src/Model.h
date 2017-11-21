@@ -85,8 +85,9 @@ class Model
         double a,b,c,P;
 
         // The signal
+        Eigen::MatrixXd ccfmodel;
         std::vector<long double> mu;
-        void calculate_mu();
+        void calculate_model();
 
         // eccentric and true anomalies
         double ecc_anomaly(double time, double prd, double ecc, double peri_pass);

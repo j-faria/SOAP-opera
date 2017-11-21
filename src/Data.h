@@ -3,21 +3,24 @@
 
 #include <vector>
 #include <algorithm>
+#include <Eigen/Core>
 
 class Data
 {
 	private:
 		std::vector<double> t, y, sig;
+		Eigen::MatrixXd ccfdata;
 
 	public:
 		Data();
 		//void load(const char* filename);
-		void load(const char* filename, const char* units, int skip=2);
+		void load(const char* filename, const char* units, int skip=0);
 		int index_fibers;
 
 		// Getters
 		int N() const {return t.size();}
 		const std::vector<double>& get_t() const { return t; }
+		const Eigen::MatrixXd& get_ccfdata() const { return ccfdata; }
 		double get_t_min() const { return *min_element(t.begin(), t.end()); }
 		double get_t_max() const { return *max_element(t.begin(), t.end()); }
 

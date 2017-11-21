@@ -58,7 +58,7 @@ void Model::from_prior(RNG& rng)
         eta4 = exp(log_eta4_prior->rvs(rng));
     }
 
-    calculate_mu();
+    calculate_model();
 
     if(GP) calculate_C();
 
@@ -105,7 +105,7 @@ void Model::initialize_star_quiet()
     for (int j=0; j<nrho; j++) 
         xyz[j] = (double *)malloc(sizeof(double)*3);
 
-    int npsi = 2;
+    int npsi = 10;
     f_spot_flux = (double **)malloc(sizeof(double *)*npsi);
     f_spot_bconv = (double **)malloc(sizeof(double *)*npsi);
     f_spot_tot = (double **)malloc(sizeof(double *)*npsi);
@@ -118,15 +118,15 @@ void Model::initialize_star_quiet()
     sum_spot = new double[npsi];
 
     // Calculates the flux and CCF in each cell of the grid and integrate
-    // over the entire stellar disc to have the integrated flux (FLUXstar) and CCF (CCFstar).
-    // Calculate the CCF (CCFstar) and the total flux (FLUXstar) for the quiet star
+    // over the entire stellar disc to have the 
+    // integrated flux (FLUXstar) and CCF (CCFstar) for the quiet star
     itot(star.vrot(), star.incl, star.limba1, star.limba2, 0., 0., 0., ngrid,
-         ccf.rv, ccf.intensity, 22.2, ccf.n_v, ccf.n,
+         ccf.rv, ccf.intensity, ccf.v_interval, ccf.n_v, ccf.n,
          CCFstar_quiet, FLUXstar_quiet);
 
 }
 
-void Model::calculate_mu()
+void Model::calculate_model()
 {
     // Get the times from the data
     const vector<double>& t = Data::get_instance().get_t();
@@ -194,9 +194,8 @@ void Model::calculate_mu()
     /*************************************************************************/
     // Get the active region components
     const vector< vector<double> >& arcomponents = active_regions.get_components();
-
     
-    int npsi = 2;
+    int npsi = 10;
     double psi[npsi];
     // psi[0] = 0.; psi[1] = 0.1;
     for (int i=0; i<npsi; i++)
@@ -210,12 +209,12 @@ void Model::calculate_mu()
         s = arcomponents[j][0];
         lon = arcomponents[j][1];
         lat = arcomponents[j][2];
-        cout << s << " " << lon << "  " << lat << endl;
+        //cout << s << " " << lon << "  " << lat << endl;
 
-        // Calculates the position of the spot initialized at the disc center
+        // Calculates the position of this spot initialized at the disc center
         spot_init(s, lon, lat, star.incl, nrho, xyz);
 
-        // Scans the yz-area where the spot is for different phases (psi) and
+        // Scans the yz-area where this spot is for different phases (psi) and
         // returns the spot's "non-contribution" to the total flux and its
         // "non-contribution" to the ccf, for each phase.
         spot_scan_npsi(xyz, nrho, psi, npsi, 
@@ -227,9 +226,13 @@ void Model::calculate_mu()
                        f_spot_flux, f_spot_bconv, 
                        f_spot_tot, sum_spot,
                        0, star.Temp, star.Temp_diff_spot);
+    
 
+        //FLUXstar      = FLUXstar - FLUXactive_region           # total flux of the star affected by active regions
+        //CCFstar_flux  = CCFstar_flux - CCFactive_region_flux   # CCF of the star affected by the flux effect of active regions
+        //CCFstar_bconv = CCFstar_bconv - CCFactive_region_bconv # CCF of the star affected by the convective blueshift effect of active regions
+        //CCFstar_tot   = CCFstar_tot - CCFactive_region_tot     # CCF of the star affected by the total effect of active regions
     }
-
 
 
     #if TIMING
@@ -247,14 +250,14 @@ double Model::perturb(RNG& rng)
 
     logH += active_regions.perturb(rng);
     active_regions.consolidate_diff();
-    calculate_mu();
+    calculate_model();
 
 
     if(rng.rand() <= 0.5)
     {
         logH += planets.perturb(rng);
         planets.consolidate_diff();
-        calculate_mu();
+        calculate_model();
     }
 
     if(GP) 
