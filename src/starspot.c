@@ -406,121 +406,121 @@ double loi_Planck(double lambda0, int Temp)
 }
 
 void itot(double v, double i, double limba1, double limba2, double modif_bis_quad, double modif_bis_lin, double modif_bis_cte, int grid,
-	  double *vrad_ccf, double *intensity_ccf, double v_interval, int n_v, int n,
-	  double *f_star, double *sum_star)
+	        double *vrad_ccf, double *intensity_ccf, 
+          double v_interval, int n_v, int n, double *f_star, double *sum_star)
 {
   /*
    * Calculates the flux and CCF in each cell of the grid and integrate
    * over the entire stellar disc to have the integrated flux and CCF
    */
 
-  double omega, delta_grid, delta_v;
-  double y, z, delta, r_cos, limb;
-  int iy, j, iz, diff_CCF_non_v_and_v,n_v_shifted_quotient;
-  double n_v_shifted, n_v_shifted_remainder;
-  double *intensity_ccf_shift;
-
-  intensity_ccf_shift = (double *)malloc(sizeof(double)*n);
-
-  /* Conversions */
-  i = i * pi/180. ; // [degree]       --> [radian]
-
-  omega = v;
-  delta_grid = 2./grid; // step of the grid. grid goes from -1 to 1, therefore 2 in total
-  // v_interval is from the velocity 0 to the edge of the spectrum taking into account minimal or maximal rotation (width - v to 0 or 0 to width + v). 
-  // n_v is the number of points for all the CCF from minimum rotation to maximum one (from width - v to width + v).
-  // n_v represent therefore the double than v_interval, we therefore have to multiply v_interval by 2.
-  delta_v = 2.*v_interval/(n_v-1); //step in speed of the CCF. There is (n_v-1) intervals
-
-  /* Calculates the total stellar intensity (without spots) */
-
-  // Scan of each cell on the grid
-  for (iy=0; iy<=grid; iy++) // y-scan
-  {
-    y = -1. + iy*delta_grid; // y between -1 et 1
-    // Give the velocity of rotation for the given grid cell as a function of y.
-    // For y=-1 => Vrot min, for y=1 => Vrot max, and for y=0 => Vrot = 0.
-    delta = y * omega * sin(i);  
-
-    for (iz=0; iz<=grid; iz++) // z-scan
-    {
-      z = -1. + iz*delta_grid;// z between -1 et 1
-      // projected radius on the sky smaller than 1, 
-      // which means that we are on the stellar disc
-      if ((y*y+z*z)<=1.) 
-      {
-          /* limb-darkening */
-          // sqrt(r^2-(y^2+z^2)) where r=1. 
-          // This is equal to 1 at the disc center, and 0 on the limb.
-          // Often referred in the literature as cos(theta)
-          r_cos = pow(1.-(y*y+z*z),.5); 
-          
-          // intensity due to limb-darkening (Mandel & Agol 2002)
-          limb =  1. - limba1*(1-r_cos) - limba2*(1-r_cos)*(1-r_cos);
-          
-          //The CCF is defined between -20 and +20 km/s with a sampling "delta_v"
-          // of 0.1 km/s, and with boundaries normalized at 1. 
-          // To account for stellar rotation in each cell of the simulation, 
-          // the CCF will be shifted depending on the position of the cell 
-          // on the stellar disc. To shift the CCF by a RV of x km/s, 
-          // we will first shift the CCF by 
-          // "n_v_shifted_quotient" = int(x/sampling) steps, 
-          // and then interpolate the CCF with the remaining velocity 
-          // "n_v_shifted_remainder"
-          // This will be done by shifting the CCF by
-          // an integer of steps and then interpolating the CCF 
-          // to match the correct velocity
-          // The sampling of the CCF is every 100 m/s, 
-          // so 2 km/s corresponds to a shift of 20 steps.
-
-          // by how much steps the CCF is shifted due to rotation
-          n_v_shifted = delta/delta_v; 
-
-          n_v_shifted_quotient = rndup(n_v_shifted, 0);
-          n_v_shifted_remainder = (delta - n_v_shifted_quotient*delta_v);
-          
-          double v_shift = n_v_shifted_remainder;
-          //shifting the CCF with the remainder of n_v_shifted, 
-          // the quotient will be taken into account by shifting 
-          // all the points of the spectrum
-          shifting_CCF(vrad_ccf, intensity_ccf, intensity_ccf_shift, v_shift, n);
-          
-          // difference in number of steps between the CCF 
-          // without any rotation and the one with rotation
-          diff_CCF_non_v_and_v = (n_v - n) / 2.;
-
-          // To take into account the rotation, 
-          // we increase the width of the CCF. 
-          // Because the original CCF is only defined between -20 and +20 km/s,
-          // we have to extrapolate on each side of the boundaries of the CCF
-          for (j=0;j<diff_CCF_non_v_and_v+n_v_shifted_quotient;j++)
-          {
-              // extrapolation on the left of the CCF 
-              // with the value of the left boundary, 
-              // weighted by the limb-darkening
-              f_star[j] += intensity_ccf_shift[0]*limb;
-          }
-          for (j=diff_CCF_non_v_and_v+n_v_shifted_quotient;j<n+(diff_CCF_non_v_and_v+n_v_shifted_quotient);j++)
-          {
-              // value of the CCF, weighted by the limb-darkening
-              f_star[j] += (intensity_ccf_shift[j-(diff_CCF_non_v_and_v+n_v_shifted_quotient)]) * limb;
-          }
-          for (j=n+(diff_CCF_non_v_and_v+n_v_shifted_quotient);j<n_v;j++)
-          {
-              // extrapolation on the right of the CCF 
-              // with the value of the right boundary, 
-              // weighted by the limb-darkening
-              f_star[j] += intensity_ccf_shift[n-1]*limb;
-          }
-          // calculates the total flux taking into account the limb-darkening 
-          // (intensity_ccf_shift[0] is very close to 1)
-          *sum_star += intensity_ccf_shift[0]*limb;
-      }
-    }
-  }
-
-  // Free memory
-  free(intensity_ccf_shift);
+//  double omega, delta_grid, delta_v;
+//  double y, z, delta, r_cos, limb;
+//  int iy, j, iz, diff_CCF_non_v_and_v,n_v_shifted_quotient;
+//  double n_v_shifted, n_v_shifted_remainder;
+//  double *intensity_ccf_shift;
+//
+//  intensity_ccf_shift = (double *)malloc(sizeof(double)*n);
+//
+//  /* Conversions */
+//  i = i * pi/180. ; // [degree]       --> [radian]
+//
+//  omega = v;
+//  delta_grid = 2./grid; // step of the grid. grid goes from -1 to 1, therefore 2 in total
+//  // v_interval is from the velocity 0 to the edge of the spectrum taking into account minimal or maximal rotation (width - v to 0 or 0 to width + v). 
+//  // n_v is the number of points for all the CCF from minimum rotation to maximum one (from width - v to width + v).
+//  // n_v represent therefore the double than v_interval, we therefore have to multiply v_interval by 2.
+//  delta_v = 2.*v_interval/(n_v-1); //step in speed of the CCF. There is (n_v-1) intervals
+//
+//  /* Calculates the total stellar intensity (without spots) */
+//
+//  // Scan of each cell on the grid
+//  for (iy=0; iy<=grid; iy++) // y-scan
+//  {
+//    y = -1. + iy*delta_grid; // y between -1 et 1
+//    // Give the velocity of rotation for the given grid cell as a function of y.
+//    // For y=-1 => Vrot min, for y=1 => Vrot max, and for y=0 => Vrot = 0.
+//    delta = y * omega * sin(i);  
+//
+//    for (iz=0; iz<=grid; iz++) // z-scan
+//    {
+//      z = -1. + iz*delta_grid;// z between -1 et 1
+//      // projected radius on the sky smaller than 1, 
+//      // which means that we are on the stellar disc
+//      if ((y*y+z*z)<=1.) 
+//      {
+//          /* limb-darkening */
+//          // sqrt(r^2-(y^2+z^2)) where r=1. 
+//          // This is equal to 1 at the disc center, and 0 on the limb.
+//          // Often referred in the literature as cos(theta)
+//          r_cos = pow(1.-(y*y+z*z),.5); 
+//          
+//          // intensity due to limb-darkening (Mandel & Agol 2002)
+//          limb =  1. - limba1*(1-r_cos) - limba2*(1-r_cos)*(1-r_cos);
+//          
+//          //The CCF is defined between -20 and +20 km/s with a sampling "delta_v"
+//          // of 0.1 km/s, and with boundaries normalized at 1. 
+//          // To account for stellar rotation in each cell of the simulation, 
+//          // the CCF will be shifted depending on the position of the cell 
+//          // on the stellar disc. To shift the CCF by a RV of x km/s, 
+//          // we will first shift the CCF by 
+//          // "n_v_shifted_quotient" = int(x/sampling) steps, 
+//          // and then interpolate the CCF with the remaining velocity 
+//          // "n_v_shifted_remainder"
+//          // This will be done by shifting the CCF by
+//          // an integer of steps and then interpolating the CCF 
+//          // to match the correct velocity
+//          // The sampling of the CCF is every 100 m/s, 
+//          // so 2 km/s corresponds to a shift of 20 steps.
+//
+//          // by how much steps the CCF is shifted due to rotation
+//          n_v_shifted = delta/delta_v; 
+//
+//          n_v_shifted_quotient = rndup(n_v_shifted, 0);
+//          n_v_shifted_remainder = (delta - n_v_shifted_quotient*delta_v);
+//          
+//          double v_shift = n_v_shifted_remainder;
+//          //shifting the CCF with the remainder of n_v_shifted, 
+//          // the quotient will be taken into account by shifting 
+//          // all the points of the spectrum
+//          shifting_CCF(vrad_ccf, intensity_ccf, intensity_ccf_shift, v_shift, n);
+//          
+//          // difference in number of steps between the CCF 
+//          // without any rotation and the one with rotation
+//          diff_CCF_non_v_and_v = (n_v - n) / 2.;
+//
+//          // To take into account the rotation, 
+//          // we increase the width of the CCF. 
+//          // Because the original CCF is only defined between -20 and +20 km/s,
+//          // we have to extrapolate on each side of the boundaries of the CCF
+//          for (j=0;j<diff_CCF_non_v_and_v+n_v_shifted_quotient;j++)
+//          {
+//              // extrapolation on the left of the CCF 
+//              // with the value of the left boundary, 
+//              // weighted by the limb-darkening
+//              f_star[j] += intensity_ccf_shift[0]*limb;
+//          }
+//          for (j=diff_CCF_non_v_and_v+n_v_shifted_quotient;j<n+(diff_CCF_non_v_and_v+n_v_shifted_quotient);j++)
+//          {
+//              // value of the CCF, weighted by the limb-darkening
+//              f_star[j] += (intensity_ccf_shift[j-(diff_CCF_non_v_and_v+n_v_shifted_quotient)]) * limb;
+//          }
+//          for (j=n+(diff_CCF_non_v_and_v+n_v_shifted_quotient);j<n_v;j++)
+//          {
+//              // extrapolation on the right of the CCF 
+//              // with the value of the right boundary, 
+//              // weighted by the limb-darkening
+//              f_star[j] += intensity_ccf_shift[n-1]*limb;
+//          }
+//          // calculates the total flux taking into account the limb-darkening 
+//          // (intensity_ccf_shift[0] is very close to 1)
+//          *sum_star += intensity_ccf_shift[0]*limb;
+//      }
+//    }
+//  }
+//
+//  // Free memory
+//  free(intensity_ccf_shift);
 }
 
 void starmap(double v, double i, double limba1, double limba2, int grid,

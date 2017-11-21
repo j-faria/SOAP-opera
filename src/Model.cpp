@@ -8,6 +8,10 @@
 #include <fstream>
 #include <chrono>
 
+extern "C" {
+#include "starspot.h"
+}
+
 using namespace std;
 using namespace Eigen;
 using namespace DNest4;
@@ -91,6 +95,37 @@ void Model::calculate_C()
 
 }
 
+
+void Model::initialize_star_quiet()
+{
+    CCFstar_quiet = new double[ccf.n];
+    FLUXstar_quiet = new double[ccf.n];
+
+    xyz = (double **)malloc(sizeof(double *)*nrho);
+    for (int j=0; j<nrho; j++) 
+        xyz[j] = (double *)malloc(sizeof(double)*3);
+
+    int npsi = 2;
+    f_spot_flux = (double **)malloc(sizeof(double *)*npsi);
+    f_spot_bconv = (double **)malloc(sizeof(double *)*npsi);
+    f_spot_tot = (double **)malloc(sizeof(double *)*npsi);
+    for (int j=0; j<npsi; j++) {
+        f_spot_flux[j] = (double *)malloc(sizeof(double)*ccf.n_v);
+        f_spot_bconv[j] = (double *)malloc(sizeof(double)*ccf.n_v);
+        f_spot_tot[j] = (double *)malloc(sizeof(double)*ccf.n_v);
+    }
+
+    sum_spot = new double[npsi];
+
+    // Calculates the flux and CCF in each cell of the grid and integrate
+    // over the entire stellar disc to have the integrated flux (FLUXstar) and CCF (CCFstar).
+    // Calculate the CCF (CCFstar) and the total flux (FLUXstar) for the quiet star
+    itot(star.vrot(), star.incl, star.limba1, star.limba2, 0., 0., 0., ngrid,
+         ccf.rv, ccf.intensity, 22.2, ccf.n_v, ccf.n,
+         CCFstar_quiet, FLUXstar_quiet);
+
+}
+
 void Model::calculate_mu()
 {
     // Get the times from the data
@@ -100,10 +135,10 @@ void Model::calculate_mu()
     bool update = (planets.get_added().size() < planets.get_components().size()) &&
             (staleness <= 10);
 
-    // Get the components
-    const vector< vector<double> >& components = (update)?(planets.get_added()):
+    // Get the planet components
+    const vector< vector<double> >& pcomponents = (update)?(planets.get_added()):
                 (planets.get_components());
-    // at this point, components has:
+    // at this point, pcomponents has:
     //  if updating: only the added planets' parameters
     //  if from scratch: all the planets' parameters
 
@@ -135,17 +170,17 @@ void Model::calculate_mu()
     #endif
 
     double P, K, phi, ecc, viewing_angle, f, v, ti;
-    for(size_t j=0; j<components.size(); j++)
+    for(size_t j=0; j<pcomponents.size(); j++)
     {
         if(hyperpriors)
-            P = exp(components[j][0]);
+            P = exp(pcomponents[j][0]);
         else
-            P = components[j][0];
+            P = pcomponents[j][0];
         
-        K = components[j][1];
-        phi = components[j][2];
-        ecc = components[j][3];
-        viewing_angle = components[j][4];
+        K = pcomponents[j][1];
+        phi = pcomponents[j][2];
+        ecc = pcomponents[j][3];
+        viewing_angle = pcomponents[j][4];
 
         for(size_t i=0; i<t.size(); i++)
         {
@@ -155,6 +190,47 @@ void Model::calculate_mu()
             mu[i] += v;
         }
     }
+
+    /*************************************************************************/
+    // Get the active region components
+    const vector< vector<double> >& arcomponents = active_regions.get_components();
+
+    
+    int npsi = 2;
+    double psi[npsi];
+    // psi[0] = 0.; psi[1] = 0.1;
+    for (int i=0; i<npsi; i++)
+        psi[i] = 0.1*i;
+
+
+    double s, lat, lon;
+
+    for(size_t j=0; j<arcomponents.size(); j++)
+    {
+        s = arcomponents[j][0];
+        lon = arcomponents[j][1];
+        lat = arcomponents[j][2];
+        cout << s << " " << lon << "  " << lat << endl;
+
+        // Calculates the position of the spot initialized at the disc center
+        spot_init(s, lon, lat, star.incl, nrho, xyz);
+
+        // Scans the yz-area where the spot is for different phases (psi) and
+        // returns the spot's "non-contribution" to the total flux and its
+        // "non-contribution" to the ccf, for each phase.
+        spot_scan_npsi(xyz, nrho, psi, npsi, 
+                       star.vrot(), star.incl, star.limba1, star.limba2, 
+                       0., 0., 0., ngrid,
+                       ccf.rv, ccf.intensity, ccf_active_region.intensity,
+                       ccf.v_interval, ccf.n_v, ccf.n,
+                       s, lon, lat,
+                       f_spot_flux, f_spot_bconv, 
+                       f_spot_tot, sum_spot,
+                       0, star.Temp, star.Temp_diff_spot);
+
+    }
+
+
 
     #if TIMING
     auto end = std::chrono::high_resolution_clock::now();
@@ -171,7 +247,7 @@ double Model::perturb(RNG& rng)
 
     logH += active_regions.perturb(rng);
     active_regions.consolidate_diff();
-
+    calculate_mu();
 
 
     if(rng.rand() <= 0.5)
@@ -401,6 +477,7 @@ string Model::description() const
     else
         return string("extra_sigma   planets.print   ar.print   staleness   background");
 }
+
 
 
 /**

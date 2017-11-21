@@ -21,9 +21,9 @@ Uniform *wprior = new Uniform(0.0, 2*M_PI);
 
 
 /* Active Region parameters */
-Uniform *size_prior = new Uniform(0., 1.);
-Uniform *longitude_prior = new Uniform(0.0, 2*M_PI);
-Uniform *latitude_prior = new Uniform(0.0, 2*M_PI);
+Uniform *size_prior = new Uniform(0., 0.1);
+Uniform *longitude_prior = new Uniform(0.0, 180.);
+Uniform *latitude_prior = new Uniform(-90., 90.);
 
 
 

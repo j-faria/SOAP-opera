@@ -22,6 +22,8 @@ void gauss_bis(double *vrad_ccf, double *ccf, double *err, int n1, double *mod, 
 extern
 void gauss_v0(double *vrad_ccf, double *ccf, double *err, int n1, double *mod, double *para);
 
+extern
+double rndup(double n,int nb_decimal);
 
 extern 
 void itot(double v, double i, double limba1, double limba2, double modif_bis_quad, double modif_bis_lin, double modif_bis_cte, int grid, 

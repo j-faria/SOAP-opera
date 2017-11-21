@@ -5,6 +5,7 @@
 #include "Model.h"
 #include "ConditionalPrior.h"
 
+
 using namespace std;
 using namespace DNest4;
 
@@ -17,8 +18,8 @@ const bool trend = false;
 
 
 Model::Model()
-:planets(5, 1, true, PlanetConditionalPrior())
-,active_regions(3, 0, true, SOAPConditionalPrior())
+:planets(5, 0, true, PlanetConditionalPrior())
+,active_regions(3, 1, true, SOAPConditionalPrior())
 ,mu(Data::get_instance().get_t().size())
 ,C(Data::get_instance().get_t().size(), Data::get_instance().get_t().size())
 ,star()
@@ -31,6 +32,11 @@ Model::Model()
     Cprior = new Uniform(ymin, ymax);
     if(trend)
     	slope_prior = new Uniform(-topslope, topslope);
+
+    star.prot = 25.05;
+    cout << ccf.n << endl;
+
+    initialize_star_quiet();
 
 }
 
