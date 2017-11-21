@@ -30,6 +30,9 @@ void Model::from_prior(RNG& rng)
     planets.from_prior(rng);
     planets.consolidate_diff();
     
+    active_regions.from_prior(rng);
+    active_regions.consolidate_diff();
+
     background = Cprior->rvs(rng);
     extra_sigma = Jprior->rvs(rng);
 
@@ -43,20 +46,12 @@ void Model::from_prior(RNG& rng)
     if(GP)
     {
         eta1 = exp(log_eta1_prior->rvs(rng)); // m/s
-        // eta1 = exp(log(1E-5) + log(1E-1)*rng.rand());
-        //eta1 = sqrt(3.); // m/s
 
         eta2 = exp(log_eta2_prior->rvs(rng)); // days
-        // eta2 = exp(log(1E-6) + log(1E6)*rng.rand());
-        //eta2 = 50.; //days
 
         eta3 = eta3_prior->rvs(rng); // days
-        // eta3 = 15. + 35.*rng.rand();
-        //eta3 = 20.; // days
 
         eta4 = exp(log_eta4_prior->rvs(rng));
-        // exp(log(1E-5) + log(1E5)*rng.rand());
-        //eta4 = 0.5;
     }
 
     calculate_mu();
@@ -173,6 +168,11 @@ double Model::perturb(RNG& rng)
     const vector<double>& t = Data::get_instance().get_t();
     double logH = 0.;
     double fraction = 0.5;
+
+    logH += active_regions.perturb(rng);
+    active_regions.consolidate_diff();
+
+
 
     if(rng.rand() <= 0.5)
     {
@@ -385,6 +385,11 @@ void Model::print(std::ostream& out) const
     else
         planets.print(out);
 
+    if (active_regions.get_fixed() and active_regions.get_components().size()==0)
+        active_regions.print0(out);
+    else
+        active_regions.print(out);
+
     out<<' '<<staleness<<' ';
     out<<background<<' ';
 }
@@ -392,9 +397,9 @@ void Model::print(std::ostream& out) const
 string Model::description() const
 {
     if(GP)
-        return string("extra_sigma   eta1   eta2   eta3   eta4  planets.print   staleness   background");
+        return string("extra_sigma   eta1   eta2   eta3   eta4  planets.print   ar.print   staleness   background");
     else
-        return string("extra_sigma   planets.print   staleness   background");
+        return string("extra_sigma   planets.print   ar.print   staleness   background");
 }
 
 

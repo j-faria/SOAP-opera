@@ -22,7 +22,7 @@ I'm guessing it will be slow... But let's try it!
 ## What is needed
 
 - [x] Create basic `DNest4` or `RJObject` template
-- [ ] Create and set priors for active region parameters
+- [ ] Create and set priors for active region parameters (**started!**)
   - which AR parameters should we let free? (lat, long, size) ?
   - which stellar parameters should we let free?
 - [ ] Implement a call to SOAP
@@ -31,7 +31,7 @@ I'm guessing it will be slow... But let's try it!
 - [ ] Find descriptive statistics
 - [ ] *enhancement:* is the CCF itself a better descriptive statistic then RVs, FWHM, BIS, etc?
 - [ ] Create simulated data for tests
-- [ ] Extend `RJObject` to allow for two classes of objects, active regions and planets
+- [ ] Extend `RJObject` to allow for two classes of objects, active regions and planets (**started!**)
 - [ ] Sample........
 
 

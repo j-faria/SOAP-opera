@@ -38,12 +38,6 @@ class PlanetConditionalPrior:public DNest4::ConditionalPrior
 class SOAPConditionalPrior:public DNest4::ConditionalPrior
 {
 	private:
-		// Parameters of bi-exponential hyper-distribution for log-periods
-		double center, width;
-
-		// Mean of exponential hyper-distribution for semi-amplitudes
-		double muK;
-
 		double perturb_hyperparameters(DNest4::RNG& rng);
 
 	public:

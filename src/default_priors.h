@@ -20,6 +20,14 @@ Uniform *phiprior = new Uniform(0.0, 2*M_PI);
 Uniform *wprior = new Uniform(0.0, 2*M_PI);
 
 
+/* Active Region parameters */
+Uniform *size_prior = new Uniform(0., 1.);
+Uniform *longitude_prior = new Uniform(0.0, 2*M_PI);
+Uniform *latitude_prior = new Uniform(0.0, 2*M_PI);
+
+
+
+
 /* GP parameters */
 Uniform *log_eta1_prior = new Uniform(-5, 5);
 Uniform *log_eta2_prior = new Uniform(0, 5);
